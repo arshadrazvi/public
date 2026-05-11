@@ -2,6 +2,10 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
 import warnings
 
+'''
+    onenote:https://d.docs.live.net/7D5C3D29B2E9AA62/Documents/Viper/Knowledge%20Base/AI/IBM%20Applied%20AI%20Professional%20Certificate.one%23Creating%20chatbot&section-id=%7BAB1526B2-CC3E-6A4D-A7D1-0E34CA57B56F%7D&page-id=%7BBB17F9DC-2FDB-9C49-B4DB-6CCB44C28F09%7D&end
+'''
+
 warnings.filterwarnings("ignore")
 model_name = "HuggingFaceTB/SmolLM2-360M-Instruct"
 
