@@ -1,12 +1,11 @@
 __pycache__/
 *.pyc
-*-venv/
 venv/
+*-venv/
+whisper-venv/
+torch-venv/
 .env
 certs/
-*.crt
-*.key
-*.pem
-*.m4a
+models/
 *.mp3
-chatbot-venv/
+*.m4a
