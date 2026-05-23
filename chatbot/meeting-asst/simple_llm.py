@@ -7,8 +7,11 @@ my_credentials = {
 }
 
 params = {
-        GenParams.MAX_NEW_TOKENS: 700, # The maximum number of tokens that the model can generate in a single run.
-        GenParams.TEMPERATURE: 0.1,   # A parameter that controls the randomness of the token generation. A lower value makes the generation more deterministic, while a higher value introduces more randomness.
+        # The maximum number of tokens that the model can generate in a single run.
+        GenParams.MAX_NEW_TOKENS: 700, 
+        # A parameter that controls the randomness of the token generation. 
+        # A lower value makes the generation more deterministic, while a higher value introduces more randomness.
+        GenParams.TEMPERATURE: 0.1,   
     }
 
 LLAMA2_model = Model(
