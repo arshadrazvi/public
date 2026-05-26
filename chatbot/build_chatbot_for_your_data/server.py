@@ -1,18 +1,34 @@
 import logging
 import os
+import yaml
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
-import worker  # Import the worker module
+
 
 # Initialize Flask app and CORS
 app = Flask(__name__)
 cors = CORS(app, resources={r"/*": {"origins": "*"}})
 app.logger.setLevel(logging.ERROR)
 
+# Get api_key
+KEY_PATH = "/Users/arshad/github.com/"
+KEY_FILE = "config.yaml"
+SECRET_FILE = KEY_PATH + KEY_FILE
+
+print("SERVER.PY STARTED", SECRET_FILE)
+
+with open(SECRET_FILE, "r") as file:
+    config = yaml.safe_load(file)
+api_key = config["openai"]["api_key"] # paste your key here if you have one
+os.environ["OPENAI_API_KEY"] = api_key
+print('****KEY****',api_key[:7])
+
 # Define the route for the index page
 @app.route('/', methods=['GET'])
 def index():
     return render_template('index.html')  # Render the index.html template
+
+import worker  # Import the worker module
 
 # Define the route for processing messages
 @app.route('/process-message', methods=['POST'])

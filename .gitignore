@@ -1,6 +1,6 @@
 __pycache__/
 *.pyc
-venv/
+*venv/
 *-venv/
 whisper-venv/
 torch-venv/
@@ -9,3 +9,4 @@ certs/
 models/
 *.mp3
 *.m4a
+config.yaml

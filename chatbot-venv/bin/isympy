@@ -1,6 +1,0 @@
-#!/Users/arshad/github.com/public/chatbot/rag-chatbot/build_chatbot_for_your_data/chatbot-venv/bin/python3
-import sys
-from isympy import main
-if __name__ == '__main__':
-    sys.argv[0] = sys.argv[0].removesuffix('.exe')
-    sys.exit(main())
