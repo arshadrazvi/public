@@ -151,23 +151,20 @@ const populateUserMessage = (userMessage, userRecording) => {
 
 const populateBotResponse = async (userMessage) => {
   await showBotLoadingAnimation();
+
   const response = await processUserMessage(userMessage);
-  responses.push(response);
-  console.log(response)
 
-  const repeatButtonID = getRandomID();
-  botRepeatButtonIDToIndexMap[repeatButtonID] = responses.length - 1;
+  console.log(response);
+
   hideBotLoadingAnimation();
-  // Append the random message to the message list
-  $("#message-list").append(
-    `<div class='message-line'><div class='message-box${
-      !lightMode ? " dark" : ""
-    }'>${
-      response.watsonxResponseText
-    }</div><button id='${repeatButtonID}' class='btn volume repeat-button' onclick='playResponseAudio("data:audio/wav;base64," + responses[botRepeatButtonIDToIndexMap[this.id]].watsonxResponseSpeech);console.log(this.id)'><i class='fa fa-volume-up'></i></button></div>`
-  );
 
-  playResponseAudio("data:audio/wav;base64," + response.watsonxResponseSpeech);
+  $("#message-list").append(
+    `<div class='message-line'>
+      <div class='message-box${!lightMode ? " dark" : ""}'>
+        ${response.openaiResponseText}
+      </div>
+    </div>`
+  );
 
   scrollToBottom();
 };

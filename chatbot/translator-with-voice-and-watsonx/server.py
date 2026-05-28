@@ -20,17 +20,31 @@ with open(SECRET_FILE, "r") as file:
 api_key = config["openai"]["api_key"]
 os.environ["OPENAI_API_KEY"] = api_key
 
-print("****KEY****", api_key[:7])
-
-
 @app.route("/", methods=["GET"])
 def index():
     return render_template("index.html")
 
 
+# @app.route("/speech-to-text", methods=["POST"])
+# def speech_to_text_route():
+#     return jsonify({
+#         "error": "speech-to-text not implemented yet"
+#     }), 501
+
 @app.route("/speech-to-text", methods=["POST"])
 def speech_to_text_route():
-    return jsonify({
+    try:
+        print("MIC ROUTE HIT")
+        print("content-type:", request.content_type)
+        print("content-length:", request.content_length)
+
+        audio_binary = request.get_data()
+        print("audio bytes received:", len(audio_binary))
+        return jsonify({
+            "text": "hello"
+    })
+    except:
+        return jsonify({
         "error": "speech-to-text not implemented yet"
     }), 501
 
@@ -40,11 +54,12 @@ def process_message_route():
     data = request.get_json()
 
     user_message = data.get("userMessage", "")
+    print("user_message check", user_message)
 
     response_text = openai_process_message(user_message)
 
     return jsonify({
-        "response": response_text
+        "openaiResponseText": response_text
     })
 
 
