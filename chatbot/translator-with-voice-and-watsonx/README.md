@@ -64,9 +64,9 @@ populateBotResponse()                              User clicks mic again
         │                                      script.js receives response.text
         │                                                   │
         │                                                   ▼
-        │                                      populateUserMessage(text)
+        │                                         populateUserMessage(text)
         │                                                   │
-        └─────────────────────────────┬─────────────────────────────┘
+        └─────────────────────────────┬─────────────────────┘
                                       ▼
                          populateBotResponse(userMessage)
                                       │
