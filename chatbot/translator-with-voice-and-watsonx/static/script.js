@@ -153,6 +153,7 @@ const populateBotResponse = async (userMessage) => {
   await showBotLoadingAnimation();
   const response = await processUserMessage(userMessage);
   responses.push(response);
+  console.log(response)
 
   const repeatButtonID = getRandomID();
   botRepeatButtonIDToIndexMap[repeatButtonID] = responses.length - 1;
@@ -162,11 +163,11 @@ const populateBotResponse = async (userMessage) => {
     `<div class='message-line'><div class='message-box${
       !lightMode ? " dark" : ""
     }'>${
-      response.openaiResponseText
-    }</div><button id='${repeatButtonID}' class='btn volume repeat-button' onclick='playResponseAudio("data:audio/wav;base64," + responses[botRepeatButtonIDToIndexMap[this.id]].openaiResponseSpeech);console.log(this.id)'><i class='fa fa-volume-up'></i></button></div>`
+      response.watsonxResponseText
+    }</div><button id='${repeatButtonID}' class='btn volume repeat-button' onclick='playResponseAudio("data:audio/wav;base64," + responses[botRepeatButtonIDToIndexMap[this.id]].watsonxResponseSpeech);console.log(this.id)'><i class='fa fa-volume-up'></i></button></div>`
   );
 
-  playResponseAudio("data:audio/wav;base64," + response.openaiResponseSpeech);
+  playResponseAudio("data:audio/wav;base64," + response.watsonxResponseSpeech);
 
   scrollToBottom();
 };

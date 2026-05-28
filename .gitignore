@@ -4,6 +4,7 @@ __pycache__/
 *-venv/
 whisper-venv/
 torch-venv/
+my_env/
 .env
 certs/
 models/
