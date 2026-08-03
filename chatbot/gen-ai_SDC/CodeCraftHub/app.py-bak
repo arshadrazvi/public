@@ -1,0 +1,214 @@
+from flask import Flask, request, jsonify
+import json
+import os
+from datetime import datetime
+
+# ----------------------------
+# Configuration & helpers
+# ----------------------------
+
+APP_ROOT = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(APP_ROOT, "data")
+DATA_FILE = os.path.join(DATA_DIR, "courses.json")
+
+# Allowed statuses for a course
+ALLOWED_STATUSES = {"Not Started", "In Progress", "Completed"}
+
+def ensure_storage():
+    """Ensure the data directory and file exist. If not, create them with a
+    sensible initial structure: { "courses": [] }.
+    This runs automatically when the app starts.
+    """
+    try:
+        if not os.path.exists(DATA_DIR):
+            os.makedirs(DATA_DIR)
+        if not os.path.exists(DATA_FILE):
+            with open(DATA_FILE, "w", encoding="utf-8") as f:
+                json.dump({"courses": []}, f, indent=2)
+    except Exception as e:
+        # If storage cannot be created, raise so you can see the issue early.
+        raise RuntimeError(f"Failed to initialize storage: {e}")
+
+def load_data():
+    """Read and return the whole dataset from the JSON file."""
+    try:
+        with open(DATA_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        # If by any chance the file is missing, create it and return empty data
+        ensure_storage()
+        with open(DATA_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception as e:
+        raise RuntimeError(f"Failed to read storage: {e}")
+
+def save_data(data):
+    """Persist the given dataset back to the JSON file."""
+    try:
+        with open(DATA_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+    except Exception as e:
+        raise RuntimeError(f"Failed to write storage: {e}")
+
+def get_next_id(courses):
+    """Return the next auto-incremented ID for a new course."""
+    if not courses:
+        return 1
+    max_id = max(c.get("id", 0) for c in courses)
+    return max_id + 1
+
+def find_course(courses, course_id):
+    """Find and return a course by its ID, or None if not found."""
+    for c in courses:
+        if c.get("id") == course_id:
+            return c
+    return None
+
+def is_valid_date(date_str):
+    """Validate that a date string is in YYYY-MM-DD format. Empty is allowed."""
+    if not date_str:
+        return True
+    try:
+        datetime.strptime(date_str, "%Y-%m-%d")
+        return True
+    except ValueError:
+        return False
+
+def validate_course_payload(payload, require_all=False):
+    """Validate the incoming payload for create/update operations.
+
+    - require_all: if True, all four fields name/description/target_date/status must be present.
+    Returns (ok: bool, info: dict)
+    """
+    if not payload:
+        return False, {"error": "Missing JSON payload"}
+
+    if require_all:
+        required = ["name", "description", "target_date", "status"]
+        for k in required:
+            if k not in payload:
+                return False, {"error": f"Missing field: {k}"}
+
+    if "target_date" in payload and not is_valid_date(payload["target_date"]):
+        return False, {"error": "target_date must be YYYY-MM-DD"}
+
+    if "status" in payload and payload["status"] not in ALLOWED_STATUSES:
+        return False, {"error": f"status must be one of {sorted(ALLOWED_STATUSES)}"}
+
+    return True, {}
+
+# Initialize storage at startup so the file exists before handling requests
+ensure_storage()
+
+# ----------------------------
+# Flask app & routes
+# ----------------------------
+app = Flask(__name__)
+app.config["JSON_SORT_KEYS"] = False  # Preserve insertion order in JSON responses
+
+@app.route("/", methods=["GET"])
+def root():
+    """Health / information endpoint at the root URL."""
+    return {"message": "CodeCraftHub API up. Use /api/courses endpoints."}
+
+# Get all courses
+@app.route("/api/courses", methods=["GET"])
+def get_all_courses():
+    try:
+        data = load_data()
+        return jsonify(data.get("courses", []))
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# Create a new course
+@app.route("/api/courses", methods=["POST"])
+def create_course():
+    try:
+        payload = request.get_json(silent=True)
+        ok, info = validate_course_payload(payload, require_all=True)
+        if not ok:
+            return jsonify(info), 400
+
+        data = load_data()
+        courses = data.get("courses", [])
+
+        new_id = get_next_id(courses)
+        course = {
+            "id": new_id,
+            "name": payload["name"],
+            "description": payload["description"],
+            "target_date": payload["target_date"],
+            "status": payload["status"],
+            "created_at": datetime.utcnow().isoformat() + "Z"
+        }
+
+        courses.append(course)
+        data["courses"] = courses
+        save_data(data)
+
+        return jsonify(course), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# Get a specific course
+@app.route("/api/courses/<int:course_id>", methods=["GET"])
+def get_course(course_id):
+    try:
+        data = load_data()
+        course = find_course(data.get("courses", []), course_id)
+        if not course:
+            return jsonify({"error": "Course not found"}), 404
+        return jsonify(course)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# Update a course (full update) - PUT
+@app.route("/api/courses/<int:course_id>", methods=["PUT"])
+def update_course(course_id):
+    try:
+        payload = request.get_json(silent=True)
+        ok, info = validate_course_payload(payload, require_all=True)
+        if not ok:
+            return jsonify(info), 400
+
+        data = load_data()
+        courses = data.get("courses", [])
+        course = find_course(courses, course_id)
+        if not course:
+            return jsonify({"error": "Course not found"}), 404
+
+        # Do not change id or created_at; update other fields
+        course.update({
+            "name": payload["name"],
+            "description": payload["description"],
+            "target_date": payload["target_date"],
+            "status": payload["status"]
+        })
+
+        save_data(data)
+        return jsonify(course)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# Delete a course
+@app.route("/api/courses/<int:course_id>", methods=["DELETE"])
+def delete_course(course_id):
+    try:
+        data = load_data()
+        courses = data.get("courses", [])
+        course = find_course(courses, course_id)
+        if not course:
+            return jsonify({"error": "Course not found"}), 404
+
+        data["courses"] = [c for c in courses if c.get("id") != course_id]
+        save_data(data)
+        return jsonify({"message": "Deleted", "id": course_id})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# ----------------------------
+# Run the app
+# ----------------------------
+if __name__ == "__main__":
+    # Bind to 0.0.0.0 so it is reachable from other devices on the network
+    app.run(debug=True, host="0.0.0.0", port=5001)
