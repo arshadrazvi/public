@@ -206,9 +206,33 @@ def delete_course(course_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+# Get course statistics by status
+@app.route("/api/courses/stats", methods=["GET"])
+def get_course_stats():
+    try:
+        data = load_data()
+        courses = data.get("courses", [])
+
+        stats = {
+            "Not Started": 0,
+            "In Progress": 0,
+            "Completed": 0,
+            "Total": len(courses)
+        }
+
+        for course in courses:
+            status = course.get("status")
+            if status in stats:
+                stats[status] += 1
+
+        return jsonify(stats)
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 # ----------------------------
 # Run the app
 # ----------------------------
 if __name__ == "__main__":
     # Bind to 0.0.0.0 so it is reachable from other devices on the network
-    app.run(debug=True, host="0.0.0.0", port=5001)
+    app.run(debug=True, host="0.0.0.0", port=5000)

@@ -3,6 +3,8 @@ import json
 import os
 from datetime import datetime
 
+from flask_cors import CORS
+
 # ----------------------------
 # Configuration & helpers
 # ----------------------------
@@ -104,6 +106,7 @@ ensure_storage()
 # Flask app & routes
 # ----------------------------
 app = Flask(__name__)
+CORS(app) 
 app.config["JSON_SORT_KEYS"] = False  # Preserve insertion order in JSON responses
 
 @app.route("/", methods=["GET"])
@@ -235,4 +238,4 @@ def get_course_stats():
 # ----------------------------
 if __name__ == "__main__":
     # Bind to 0.0.0.0 so it is reachable from other devices on the network
-    app.run(debug=True, host="0.0.0.0", port=5001)
+    app.run(debug=True, host="0.0.0.0", port=5000)
