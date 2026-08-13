@@ -88,9 +88,31 @@ def _train_models(train_df: pd.DataFrame, features: list[str]):
 
 
 def _predict_stats(models, rows: pd.DataFrame, features: list[str]) -> pd.DataFrame:
-    out = rows[
-        ["player_id", "player_name", "position", "season", "week"]
-    ].copy()
+    # nflverse player-stat datasets commonly expose the player's team as
+    # ``recent_team``. Keep this optional so schema changes do not break the app.
+    team_column = None
+    for candidate in ("recent_team", "team"):
+        if candidate in rows.columns:
+            team_column = candidate
+            break
+
+    output_columns = [
+        "player_id",
+        "player_name",
+        "position",
+        "season",
+        "week",
+    ]
+
+    if team_column:
+        output_columns.append(team_column)
+
+    out = rows[output_columns].copy()
+
+    if team_column:
+        out = out.rename(columns={team_column: "team"})
+    else:
+        out["team"] = ""
 
     for stat in OUTPUT_STATS:
         out[f"pred_{stat}"] = 0.0

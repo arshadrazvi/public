@@ -71,6 +71,7 @@ def predictions(
             "player_id": str(row["player_id"]),
             "player_name": str(row["player_name"]),
             "position": str(row["position"]),
+            "team": "" if row.get("team") is None else str(row.get("team", "")),
             "season": int(row["season"]),
             "week": int(row["week"]),
             "projected_points": float(row["projected_points"]),

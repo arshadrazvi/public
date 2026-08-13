@@ -182,3 +182,125 @@ td:nth-child(4) {
     .metrics { grid-template-columns: repeat(2, 1fr); }
     .table-heading { align-items: stretch; flex-direction: column; }
 }
+
+
+/* ---------- Local filtering / sorting enhancements ---------- */
+
+.hero {
+    position: relative;
+    overflow: hidden;
+    min-height: 250px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 3;
+    width: min(1250px, calc(100% - 48px));
+}
+
+.helmet {
+    position: absolute;
+    z-index: 1;
+    top: 50%;
+    width: min(34vw, 420px);
+    height: min(34vw, 420px);
+    transform: translateY(-50%);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    opacity: 0.16;
+    filter: saturate(0.9);
+    pointer-events: none;
+}
+
+.helmet-cowboys {
+    left: -35px;
+    background-image: url("/static/assets/cowboys-helmet.png");
+}
+
+.helmet-broncos {
+    right: -35px;
+    background-image: url("/static/assets/broncos-helmet.png");
+    transform: translateY(-50%) scaleX(-1);
+}
+
+.hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    background: linear-gradient(
+        90deg,
+        rgba(11, 16, 32, 0.60),
+        rgba(11, 16, 32, 0.90) 38%,
+        rgba(11, 16, 32, 0.90) 62%,
+        rgba(11, 16, 32, 0.60)
+    );
+    pointer-events: none;
+}
+
+.filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: end;
+    margin-bottom: 8px;
+}
+
+.player-search-field {
+    min-width: 230px;
+    flex: 1 1 230px;
+}
+
+.local-filter-note {
+    margin: 4px 0 18px;
+    color: var(--muted);
+    font-size: 0.86rem;
+}
+
+th.sortable {
+    cursor: pointer;
+    user-select: none;
+}
+
+th.sortable::after {
+    content: " ↕";
+    opacity: 0.35;
+}
+
+th.sortable.active-sort {
+    color: var(--accent);
+}
+
+th.sortable.active-sort::after {
+    opacity: 1;
+}
+
+.load-controls {
+    position: relative;
+    z-index: 4;
+}
+
+@media (max-width: 760px) {
+    .helmet {
+        width: 230px;
+        height: 230px;
+        opacity: 0.10;
+    }
+
+    .helmet-cowboys {
+        left: -100px;
+    }
+
+    .helmet-broncos {
+        right: -100px;
+    }
+
+    .filter-bar > .field,
+    .filter-bar > button {
+        width: 100%;
+    }
+}
