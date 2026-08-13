@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fantasy Football Predictor</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <header class="hero">
+        <div>
+            <p class="eyebrow">NFL ANALYTICS</p>
+            <h1>Fantasy Football Weekly Predictor</h1>
+            <p class="subtitle">
+                ML projections based on historical NFL player performance and recent usage.
+            </p>
+        </div>
+    </header>
+
+    <main>
+        <section class="panel controls">
+            <div class="field">
+                <label for="season">Season</label>
+                <input id="season" type="number" min="2018" value="2025">
+            </div>
+
+            <div class="field">
+                <label for="week">Week</label>
+                <input id="week" type="number" min="1" max="22" value="10">
+            </div>
+
+            <div class="field">
+                <label for="position">Position</label>
+                <select id="position">
+                    <option value="ALL">All</option>
+                    <option value="QB">QB</option>
+                    <option value="RB">RB</option>
+                    <option value="WR">WR</option>
+                    <option value="TE">TE</option>
+                </select>
+            </div>
+
+            <button id="predictButton">Generate Projections</button>
+            <button id="backtestButton" class="secondary">Backtest Week</button>
+        </section>
+
+        <section id="status" class="status"></section>
+
+        <section id="metrics" class="metrics hidden">
+            <div class="metric"><span>MAE</span><strong id="mae">-</strong></div>
+            <div class="metric"><span>RMSE</span><strong id="rmse">-</strong></div>
+            <div class="metric"><span>Within ±2</span><strong id="within2">-</strong></div>
+            <div class="metric"><span>Within ±4</span><strong id="within4">-</strong></div>
+            <div class="metric"><span>Within ±6</span><strong id="within6">-</strong></div>
+        </section>
+
+        <section class="panel">
+            <div class="table-heading">
+                <div>
+                    <h2>Player Projections</h2>
+                    <p id="resultSummary">Select a season and week.</p>
+                </div>
+                <input id="playerSearch" placeholder="Search player..." type="search">
+            </div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Player</th>
+                            <th>Pos</th>
+                            <th>Projection</th>
+                            <th>Low</th>
+                            <th>High</th>
+                            <th>Pass Yds</th>
+                            <th>Rush Yds</th>
+                            <th>Rec</th>
+                            <th>Rec Yds</th>
+                        </tr>
+                    </thead>
+                    <tbody id="predictionRows">
+                        <tr>
+                            <td colspan="10" class="empty">
+                                Click Generate Projections to begin.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
