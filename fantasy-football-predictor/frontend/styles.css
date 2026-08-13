@@ -186,19 +186,13 @@ td:nth-child(4) {
 
 /* ---------- Local filtering / sorting enhancements ---------- */
 
-.hero::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-
-    background: linear-gradient(90deg,
-            rgba(11, 16, 32, 0.20),
-            rgba(11, 16, 32, 0.75) 40%,
-            rgba(11, 16, 32, 0.75) 60%,
-            rgba(11, 16, 32, 0.20));
-
-    pointer-events: none;
+.hero {
+    position: relative;
+    overflow: hidden;
+    min-height: 250px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .hero-content {
@@ -209,28 +203,26 @@ td:nth-child(4) {
 
 .helmet {
     position: absolute;
-    z-index: 2;
+    z-index: 1;
     top: 50%;
-    width: 420px;
-    height: 420px;
+    width: min(34vw, 420px);
+    height: min(34vw, 420px);
     transform: translateY(-50%);
     background-repeat: no-repeat;
     background-position: center;
     background-size: contain;
-
-    /* Make helmets much more visible */
-    opacity: 0.55;
-
+    opacity: 0.16;
+    filter: saturate(0.9);
     pointer-events: none;
 }
 
 .helmet-cowboys {
-    left: 20px;
+    left: -35px;
     background-image: url("/static/assets/cowboys-helmet.png");
 }
 
 .helmet-broncos {
-    right: 20px;
+    right: -35px;
     background-image: url("/static/assets/broncos-helmet.png");
     transform: translateY(-50%) scaleX(-1);
 }
@@ -311,4 +303,56 @@ th.sortable.active-sort::after {
     .filter-bar > button {
         width: 100%;
     }
+}
+
+
+/* ---------- Bright helmet header treatment ---------- */
+.helmet {
+    z-index: 2;
+    width: min(31vw, 380px);
+    height: min(31vw, 380px);
+    opacity: 1;
+    filter: none;
+}
+
+.helmet-cowboys {
+    left: 20px;
+    background-image: url("/static/assets/cowboys-helmet-clean.png");
+}
+
+.helmet-broncos {
+    right: 20px;
+    background-image: url("/static/assets/broncos-helmet-clean.png");
+    transform: translateY(-50%) scaleX(-1);
+}
+
+.hero::after {
+    z-index: 1;
+    background: linear-gradient(
+        90deg,
+        rgba(11,16,32,0.02) 0%,
+        rgba(11,16,32,0.35) 22%,
+        rgba(11,16,32,0.80) 40%,
+        rgba(11,16,32,0.80) 60%,
+        rgba(11,16,32,0.35) 78%,
+        rgba(11,16,32,0.02) 100%
+    );
+}
+
+.hero-content {
+    position: relative;
+    z-index: 3;
+    max-width: 760px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+@media (max-width: 800px) {
+    .helmet {
+        width: 220px;
+        height: 220px;
+        opacity: 0.9;
+    }
+    .helmet-cowboys { left: -60px; }
+    .helmet-broncos { right: -60px; }
 }
