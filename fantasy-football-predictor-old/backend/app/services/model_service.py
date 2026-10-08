@@ -9,7 +9,6 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error
 
 from ..config import POSITIONS
 from .data_service import load_player_data
-from .schedule_service import make_future_rows
 from .feature_engineering import add_features, feature_columns
 
 
@@ -147,12 +146,7 @@ def _projected_points(df: pd.DataFrame) -> pd.Series:
 
 def predict_week(season: int, week: int) -> PredictionBundle:
     raw = load_player_data(season)
-    # Never use actual target-week rows to choose participants or compute features.
-    historical = _before_week(raw, season, week)
-    future_rows = make_future_rows(historical, season, week)
-    combined = pd.concat([historical, future_rows], ignore_index=True)
-    combined = combined.sort_values(["player_id", "season", "week"]).reset_index(drop=True)
-    df = add_features(combined)
+    df = add_features(raw)
     features = feature_columns(df)
 
     train_df = _before_week(df, season, week)
@@ -162,7 +156,11 @@ def predict_week(season: int, week: int) -> PredictionBundle:
         raise ValueError("No training data exists before the requested week.")
 
     if target_df.empty:
-        raise ValueError("No eligible player candidates for this scheduled week.")
+        raise ValueError(
+            f"No player-stat rows exist for {season} Week {week}. "
+            "This starter currently predicts weeks already represented "
+            "in the nflverse player-stat dataset."
+        )
 
     models = _train_models(train_df, features)
     predictions = _predict_stats(models, target_df, features)
@@ -189,11 +187,10 @@ def predict_week(season: int, week: int) -> PredictionBundle:
 
 def backtest_week(season: int, week: int) -> dict:
     bundle = predict_week(season, week)
-    actual_raw = load_player_data(season)
-    actual_raw = _exact_week(actual_raw, season, week)
-    if actual_raw.empty:
-        raise ValueError("Backtesting requires completed target-week player stats.")
-    actual = add_features(actual_raw)[["player_id", "fantasy_points"]].copy()
+
+    actual = bundle.source_week[
+        ["player_id", "fantasy_points"]
+    ].copy()
 
     comparison = bundle.predictions.merge(actual, on="player_id", how="inner")
     if comparison.empty:

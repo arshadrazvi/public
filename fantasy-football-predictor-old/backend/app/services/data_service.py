@@ -61,5 +61,3 @@ def load_player_data(end_season: int, start_season: int = FIRST_SEASON) -> pd.Da
 
 def clear_data_cache() -> None:
     load_player_data.cache_clear()
-    from .schedule_service import load_schedule
-    load_schedule.cache_clear()

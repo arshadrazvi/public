@@ -132,23 +132,3 @@ POST /api/refresh?end_season=2025
 Historical prediction rows use lagged/rolling features with `shift(1)`, so the result from the week being predicted is not included in its own features.
 
 This starter intentionally focuses on player history and usage. The next production improvement should add opponent strength, schedules, injuries, snap share, weather and game-market context.
-
-
-## Forward-looking predictions (updated)
-Choose the **season and target week** and click **Load Projections**.
-The backend loads the regular-season schedule, identifies teams playing,
-builds a candidate player list from recent *prior-week* statistics,
-creates synthetic target-week rows, and uses lagged features to predict
-target-week production. **No target-week stats are required.**
-
-**Limitations:** Recent participation is used as a proxy for roster/availability;
-this version does not check injury reports, depth charts, transactions or
-announced inactive players. Players with no recent stats (e.g. rookies)
-may be omitted. Historical backtests only score projected players who
-actually recorded target-week stats (selection bias). The model's low/high
-values are heuristic, not calibrated intervals. Data downloads require
-internet and upstream nflverse/nflreadpy publication.
-
-The model is intentionally trained only on data before the requested week.
-The target week's actual player stats are accessed only when **Backtest Week**
-is explicitly requested.
