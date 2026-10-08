@@ -1,0 +1,77 @@
+Your screenshot confirms the limitation we discussed. The application is running, but it cannot generate predictions for 2026 Week 5 because Week 5 player statistics do not exist yet.
+
+The error is coming from the backend:
+
+> No player-stat rows exist for 2026 Week 5. This starter currently predicts weeks already represented in the nflverse player-stat dataset.
+
+### What needs to change
+
+The current application uses historical player-stat rows to identify which players to predict. For an upcoming week, those rows don't exist.
+
+We need to change the prediction workflow:
+
+Proposed Week 5 prediction pipeline
+
+2026 NFL Week 5 Schedule + Player Rosters
+
+Player statistics through Week 4
+
+Feature engineering + Trained ML models
+
+Week 5 Player Projections
+
+The updated backend should:
+
+1. Download the Week 5 NFL schedule to identify teams playing and teams on bye.
+2. Identify eligible QB, RB, WR, and TE players using current rosters and recent participation.
+3. Calculate rolling statistics using only games completed before each player's Week 5 kickoff.
+4. Feed those features into the trained prediction models.
+5. Return projections to your existing frontend without requiring actual Week 5 statistics.
+
+We should also keep Backtest Week separate. That feature should simulate a prediction made before a historical week and compare it against actual results, rather than using information that became available afterward.
+
+The frontend in your screenshot can largely remain unchanged. The main correction belongs in `data_service.py`, `feature_engineering.py`, `model_service.py`, and the prediction endpoint in `main.py`.
+
+Would you like me to generate the updated Python backend and a complete downloadable project ZIP so selecting Season 2026 / Week 5 produces genuine forward-looking projections?
+
+I've updated the Fantasy Football Predictor to support forward-looking weekly projections.
+
+&#x20;Download the updated complete project (ZIP)
+
+### What's changed
+
+- Future-week predictions: The backend no longer requires Week 5 player-stat rows to exist.
+- NFL schedule integration: Identifies which teams are playing in the selected week.
+- Player selection: Uses recent participation to identify potential QB, RB, WR, and TE players.
+- Historical cutoff: Calculates features from games before the target week, preventing future statistics from entering the predictions.
+- Backtesting: Compares projections against actual statistics when the selected week has been completed.
+- Existing frontend preserved: Includes your filtering, sorting, and helmet images.
+
+The updated Python files passed syntax compilation. Live NFL data retrieval and end-to-end prediction results have not yet been verified.
+
+### How to run it
+
+Extract the ZIP, open the project directory, activate your virtual environment, and run:
+
+```
+pip install -r requirements.txt
+python run.py
+```
+
+Then open `http://127.0.0.1:8000` and select:
+
+| Setting   | Value      |
+| --------- | ---------- |
+| Season    | 2026       |
+| Week      | 5          |
+| Position  | QB, or All |
+| Sort By   | Pass Yards |
+| Direction | High → Low |
+
+Click Load Projections.
+
+The model will use historical performance through Week 4 and attempt to generate Week 5 projections.
+
+One limitation remains: Player eligibility is based on recent participation, not verified game-day active rosters or injury reports. The projections are therefore experimental and should not yet be treated as reliable fantasy lineup recommendations.
+
+I also included these limitations in the project's README.
