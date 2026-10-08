@@ -88,37 +88,215 @@ fantasy-football-predictor/
 
 The `data/cache`, `data/models`, and `data/exports` folders are prepared by configuration but **do not imply** that this MVP currently writes trained models or forecasts to disk. Data loading is cached in process memory with `functools.lru_cache`.
 
-## 3. Installation and starting the app
+## 3. Installation and execution — step-by-step
 
-Prerequisites: Python compatible with the versions in `requirements.txt`, internet access for first-time NFL data retrieval, and a browser.
+### 3.1 Prerequisites
+
+- macOS, Linux or Windows with a terminal and web browser.
+- **Python 3.11 or 3.12 recommended**. Verify your interpreter is compatible with the dependency versions that pip resolves.
+- Internet access to retrieve NFL player statistics and schedules through `nflreadpy`.
+- Approximately 1 GB of free space is a sensible starting allowance for the virtual environment and downloaded dependencies; actual requirements vary.
+- No API key is required by the current code.
+
+Check your environment:
 
 ```bash
-cd fantasy-football-predictor
-
-# macOS / Linux
-python3 -m venv fantasy-venv
-source fantasy-venv/bin/activate
-
-python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
-python run.py
+python3 --version
+python3 -m pip --version
 ```
 
-Visit **http://127.0.0.1:8000/**. API documentation is at **http://127.0.0.1:8000/docs**. Stop with `Ctrl+C`.
+On macOS, if `python3` is missing, install a supported Python version first. On Windows, use `py -3.11` in place of `python3` where appropriate.
 
-The launcher runs `uvicorn` at `127.0.0.1:8000` with automatic code reload. This is a **local development server**, not a production deployment. If port 8000 is occupied, stop the other process or adjust `run.py`.
+### 3.2 Download and unpack
 
-### Dependencies
+Download the project ZIP and extract it. In macOS Terminal, navigate to the directory containing the extracted `fantasy-football-predictor` folder:
+
+```bash
+cd /path/to/fantasy-football-predictor
+pwd
+ls
+```
+
+You should see `run.py`, `requirements.txt`, `backend/`, `frontend/`, and `scripts/`. **Run all commands below from the project root**, not from `backend/` or `frontend/`.
+
+### 3.3 Create and activate a virtual environment
+
+**macOS / Linux**
+
+```bash
+python3 -m venv fantasy-venv
+source fantasy-venv/bin/activate
+python --version
+```
+
+**Windows PowerShell**
+
+```powershell
+py -3.11 -m venv fantasy-venv
+.\\fantasy-venv\\Scripts\\Activate.ps1
+python --version
+```
+
+**Windows Command Prompt**
+
+```bat
+py -3.11 -m venv fantasy-venv
+fantasy-venv\\Scripts\\activate.bat
+python --version
+```
+
+After activation, your shell typically displays `(fantasy-venv)`. If PowerShell blocks activation, consult your organization's execution-policy guidance rather than globally disabling security settings. You can alternatively invoke `fantasy-venv\\Scripts\\python.exe` directly.
+
+### 3.4 Install Python packages
+
+```bash
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+python -m pip check
+```
+
+The `requirements.txt` specifies **minimum versions**, not a fully locked dependency set. For reproducibility, consider recording a tested environment with `python -m pip freeze > requirements-lock.txt` after verifying it works.
+
+Dependencies include:
 
 | Package | Role |
 |---|---|
-| FastAPI | HTTP API and static file serving |
-| Uvicorn | Local ASGI web server |
-| nflreadpy | NFL schedule and player-stat data retrieval |
-| pandas | Tabular data cleaning, filtering, grouping, rolling statistics |
-| NumPy | Numerical features, clipping and scoring |
-| scikit-learn | Gradient boosting regression and backtest metrics |
-| pyarrow | Columnar-data interoperability |
+| `fastapi` | Web API and frontend file serving |
+| `uvicorn[standard]` | Development ASGI server |
+| `nflreadpy` | NFL player-stat and schedule downloads |
+| `pandas` | Data preparation and rolling features |
+| `numpy` | Numerical processing |
+| `scikit-learn` | Gradient boosting models and evaluation |
+| `pyarrow` | Columnar data interoperability |
+
+### 3.5 Start the application
+
+```bash
+python run.py
+```
+
+The provided `run.py` starts Uvicorn with:
+
+```text
+Host:   127.0.0.1
+Port:   8000
+Reload: True (development mode)
+App:    backend.app.main:app
+```
+
+Open these addresses:
+
+- **User interface:** http://127.0.0.1:8000/
+- **API documentation:** http://127.0.0.1:8000/docs
+- **Health endpoint:** http://127.0.0.1:8000/api/health
+
+The server must remain running while you use the application. Press **Ctrl+C** in its terminal to stop it. On later sessions, activate the same virtual environment and run `python run.py` again; you do **not** need to reinstall packages every time.
+
+### 3.6 First execution: generate Week 5 projections
+
+In the browser:
+
+1. Select **Season = 2026**.
+2. Select **Week = 5**.
+3. Select **Position = ALL** or **QB**.
+4. Click **Load Projections**.
+5. Wait for the initial download and training; the first call may take substantially longer than subsequent calls.
+6. Filter by team/player, adjust minimum projected points, or sort by points, passing yards, etc.
+
+The backend excludes target-week actuals from its historical inputs. For 2026 Week 5, its features use earlier weeks and earlier seasons. It also requires the schedule and recent candidate-player records to be available from the upstream source. **A successful server startup does not guarantee upstream data retrieval or valid projections.**
+
+For a historical week whose actual stats have been published, click **Backtest Week**. Do not expect a valid backtest for an unplayed or unpublished week.
+
+### 3.7 Execute from the command line (no browser)
+
+The project also provides a command-line prediction/export utility:
+
+```bash
+python scripts/train.py --season 2026 --week 5
+```
+
+This prints the top 50 players and saves **all computed projections** to:
+
+```text
+data/exports/predictions_2026_week_5.csv
+```
+
+To print a backtest as well (only for a week with actual player stats):
+
+```bash
+python scripts/train.py --season 2026 --week 4 --backtest
+```
+
+Despite its name, `scripts/train.py` performs **training plus prediction on demand**, prints results and exports CSV; it does not persist a reusable trained-model file.
+
+### 3.8 API execution examples
+
+Run these from a **second terminal** while the server remains running:
+
+```bash
+# Confirm server is alive
+curl http://127.0.0.1:8000/api/health
+
+# Project Week 5 quarterbacks
+curl "http://127.0.0.1:8000/api/predictions?season=2026&week=5&position=QB&limit=25"
+
+# Project all positions, up to 500 rows
+curl "http://127.0.0.1:8000/api/predictions?season=2026&week=5&position=ALL&limit=500"
+
+# Backtest completed Week 4
+curl "http://127.0.0.1:8000/api/backtest?season=2026&week=4"
+
+# Clear backend in-memory NFL data caches
+curl -X POST http://127.0.0.1:8000/api/refresh
+```
+
+`/api/refresh` clears data/schedule caches, not browser caching or saved CSVs. The next request may need to redownload data.
+
+### 3.9 Updating the application
+
+If replacing an older release:
+
+1. Stop the old server with **Ctrl+C**.
+2. Back up any modified source files or saved exports.
+3. Extract the updated project into a new directory or replace the intended files carefully.
+4. Activate the environment and run `python -m pip install -r requirements.txt`.
+5. Restart `python run.py` and hard-refresh the browser (**Command+Shift+R** on macOS).
+6. Verify the Week 5 request and `/api/health`.
+
+If you see the old error `No player-stat rows exist for ...`, check that you launched the **forward-looking** version with `backend/app/services/schedule_service.py`, not an earlier ZIP.
+
+### 3.10 Git and local environment hygiene
+
+From the project root, add these to `.gitignore` if not already present:
+
+```gitignore
+fantasy-venv/
+venv/
+__pycache__/
+*.pyc
+.DS_Store
+data/cache/
+data/models/
+data/exports/
+```
+
+Do not commit the virtual environment, large generated artifacts or local secrets. If you place this project inside another Git repository, keep it as a normal directory unless you intentionally want a submodule. A nested `.git` directory creates a separate Git repository; `.gitignore` alone does not create or remove a submodule.
+
+### 3.11 Installation and runtime troubleshooting
+
+| Problem | Check / fix |
+|---|---|
+| `python: command not found` | Try `python3` or activate the virtual environment |
+| `ModuleNotFoundError` | Activate the correct venv; run `python -m pip install -r requirements.txt` |
+| `Address already in use` | Stop the existing server on port 8000, or edit `run.py` to use another port |
+| Browser cannot connect | Confirm `python run.py` is still running and open `127.0.0.1:8000`, not a file path |
+| First request appears slow | Initial downloads and per-target model training can take time |
+| `No recent players found` | Verify the season/week, current data publication, and candidate eligibility |
+| `No regular-season schedule exists` | Verify schedule availability and valid regular-season week |
+| `No player-stat rows exist` | You may be running the older historical-only version |
+| `304 Not Modified` for CSS/JS/PNG | Normal browser caching; hard-refresh if assets are stale |
+| Backtest fails for future week | Backtests need published actual player statistics |
+| CSV missing | Check `data/exports/` after a successful `scripts/train.py` run |
 
 ## 4. How to use the web interface
 
